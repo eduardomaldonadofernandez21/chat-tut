@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { databases, DATABASE_ID, COLLECTION_ID_MESSAGES } from '../appwirteConfig';
-import {ID} from 'appwrite';
+import {ID, Query} from 'appwrite';
+import {Trash2} from 'react-feather';
 
 const Room = () => {
 
@@ -13,6 +14,7 @@ const Room = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('MESSAGE:', messageBody);
 
     let payload = {
       body:messageBody
@@ -22,7 +24,11 @@ const Room = () => {
       DATABASE_ID,
       COLLECTION_ID_MESSAGES,
       ID.unique(),
-      payload
+      payload,
+      [
+        Query.orderDesc('$createdAt'),
+        Query.limit(100),
+      ]
     );
 
     console.log('Created!', response);
@@ -33,10 +39,23 @@ const Room = () => {
 
 
   const getMessages = async () => {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID_MESSAGES)
+    const response = await databases.listDocuments(
+      DATABASE_ID, 
+      COLLECTION_ID_MESSAGES,
+      [
+        Query.orderDesc('$createdAt'),
+        Query.limit(100),
+      ]
+    )
     console.log('RESPONSE')
     setMessages(response.documents);
   }
+
+  const deleteMessage = async (message_id) => {
+    await databases.deleteDocument(DATABASE_ID, COLLECTION_ID_MESSAGES, message_id);
+    setMessages(prevState => messages.filter(message => message.$id !== message_id))
+  }
+
   return (
     <main className='container'>
       
@@ -64,7 +83,9 @@ const Room = () => {
             <div key={message.$id} className='messages--wrapper'> 
 
               <div className='message--header'>
-                <small className='message-timestamp'>{message.$createdAt}</small>
+                <small className='message-timestamp'>{new Date(message.$createdAt).toLocaleString()}</small>
+              
+                <Trash2 className="delete--btn" onClick={() => {deleteMessage(message.$id)}}/>
               </div>
 
               <div className='message--body'>
