@@ -25,6 +25,7 @@ const LoginPage = () => {
     let value = e.target.value;
 
     setCredentials({...credentials, [name]:value});
+    console.log('CREDS:', credentials);
   }
 
   return (
@@ -66,7 +67,7 @@ const LoginPage = () => {
           </div>
         </form>
 
-      <p>Dont have an account? Register</p>
+      <p>Dont have an account? Register <Link to="/register">here</Link></p>
       </div>
     </div>
   )
